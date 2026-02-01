@@ -3,9 +3,9 @@ Configuration module for HealthTek Clinical Data Ingestion.
 
 Loads configuration from environment variables with sensible defaults.
 """
+
 import os
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -29,14 +29,13 @@ class Config:
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     LOG_FORMAT: str = os.getenv(
-        "LOG_FORMAT",
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        "LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     # Data Source URLs
     FINESS_DATASET_ID: str = "finess-extraction-du-fichier-des-etablissements"
     FINESS_API_URL: str = f"https://www.data.gouv.fr/api/1/datasets/{FINESS_DATASET_ID}/"
-    
+
     IQSS_API_URL_TEMPLATE: str = (
         "https://www.data.gouv.fr/api/1/datasets/"
         "indicateurs-de-qualite-et-de-securite-des-soins-recueil-{annee}/"

@@ -1,11 +1,9 @@
 """
 Pytest fixtures and configuration for tests.
 """
-import json
-import os
+
 from pathlib import Path
-from typing import Dict, Any
-from unittest.mock import Mock
+from typing import Any, Dict
 
 import pandas as pd
 import pytest
@@ -52,15 +50,15 @@ def sample_iqss_api_response() -> Dict[str, Any]:
                 "id": "resource-1",
                 "title": "Resultats IQSS E-SATIS et CA-MCO OPEN DATA 2023",
                 "url": "https://example.com/iqss_2023.csv",
-                "format": "csv"
+                "format": "csv",
             },
             {
                 "id": "resource-2",
                 "title": "Other file",
                 "url": "https://example.com/other.csv",
-                "format": "csv"
-            }
-        ]
+                "format": "csv",
+            },
+        ],
     }
 
 
@@ -76,9 +74,9 @@ def sample_finess_api_response() -> Dict[str, Any]:
                 "id": "finess-resource-1",
                 "title": "FINESS Etablissements",
                 "url": "https://example.com/finess.csv",
-                "format": "csv"
+                "format": "csv",
             }
-        ]
+        ],
     }
 
 
@@ -95,13 +93,15 @@ def sample_iqss_csv_data() -> str:
 @pytest.fixture
 def sample_iqss_dataframe() -> pd.DataFrame:
     """Sample IQSS DataFrame."""
-    return pd.DataFrame({
-        "finess": ["010000001", "020000002", "030000003"],
-        "rs": ["Hopital Test 1", "Hopital Test 2", "Hopital Test 3"],
-        "nb_sejours": [150, 200, 300],
-        "score_global": [85.5, 90.0, 88.2],
-        "participation": ["Obligatoire", "Facultatif", "Obligatoire"]
-    })
+    return pd.DataFrame(
+        {
+            "finess": ["010000001", "020000002", "030000003"],
+            "rs": ["Hopital Test 1", "Hopital Test 2", "Hopital Test 3"],
+            "nb_sejours": [150, 200, 300],
+            "score_global": [85.5, 90.0, 88.2],
+            "participation": ["Obligatoire", "Facultatif", "Obligatoire"],
+        }
+    )
 
 
 @pytest.fixture
@@ -117,17 +117,19 @@ def sample_finess_csv_data() -> str:
 @pytest.fixture
 def sample_finess_dataframe() -> pd.DataFrame:
     """Sample cleaned FINESS DataFrame."""
-    return pd.DataFrame({
-        "nofinesset": ["010000001", "020000002"],
-        "nofinessej": ["EJ001", "EJ002"],
-        "rs": ["Hopital A", "Clinique B"],
-        "rslongue": ["Hopital A - Nom Complet", "Clinique B - Nom Complet"],
-        "siret": ["12345678901234", "98765432109876"],
-        "commune": ["Paris", "Lyon"],
-        "cpostal": ["75001", "69001"],
-        "etat": ["A", "A"],
-        "finess": ["010000001", "020000002"]
-    })
+    return pd.DataFrame(
+        {
+            "nofinesset": ["010000001", "020000002"],
+            "nofinessej": ["EJ001", "EJ002"],
+            "rs": ["Hopital A", "Clinique B"],
+            "rslongue": ["Hopital A - Nom Complet", "Clinique B - Nom Complet"],
+            "siret": ["12345678901234", "98765432109876"],
+            "commune": ["Paris", "Lyon"],
+            "cpostal": ["75001", "69001"],
+            "etat": ["A", "A"],
+            "finess": ["010000001", "020000002"],
+        }
+    )
 
 
 @pytest.fixture
@@ -142,9 +144,9 @@ def mock_config(mocker, temp_dir):
     config_mock.LOG_LEVEL = "INFO"
     config_mock.FINESS_API_URL = "https://api.example.com/finess"
     config_mock.IQSS_API_URL_TEMPLATE = "https://api.example.com/iqss/{annee}"
-    
+
     config_mock.get_bronze_path = lambda *parts: temp_dir / "bronze" / Path(*parts)
     config_mock.get_silver_path = lambda *parts: temp_dir / "silver" / Path(*parts)
     config_mock.ensure_directories = lambda: None
-    
+
     return config_mock

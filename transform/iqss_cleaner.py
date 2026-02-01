@@ -3,9 +3,10 @@ IQSS data transformation and cleaning module.
 
 Cleans and normalizes IQSS (quality and safety indicators) data files.
 """
+
 import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -16,14 +17,11 @@ logger = logging.getLogger("healthtek.transform.iqss")
 
 class IQSSTransformError(Exception):
     """Exception raised during IQSS transformation."""
+
     pass
 
 
-def clean_iqss(
-    filepath: str,
-    annee: int,
-    silver_dir: Optional[str] = None
-) -> pd.DataFrame:
+def clean_iqss(filepath: str, annee: int, silver_dir: Optional[str] = None) -> pd.DataFrame:
     """
     Clean and normalize IQSS data file.
 
@@ -35,33 +33,33 @@ def clean_iqss(
     - Clean categorical columns: "1-Obligatoire" → "Obligatoire", "2-Facultatif" → "Facultatif"
     - Clean categorical columns: "1-Oui" → "Oui", "2-Non" → "Non"
     - Normalize FINESS identifier to 9 digits
-    
+
     Args:
         filepath: Path to the raw IQSS file (CSV or Excel)
         annee: Year of the data
         silver_dir: Optional output directory (defaults to config.SILVER_DIR/iqss)
-        
+
     Returns:
         Cleaned DataFrame
-        
+
     Raises:
         IQSSTransformError: If transformation fails
         FileNotFoundError: If input file doesn't exist
     """
     logger.info(f"Starting IQSS cleaning for year {annee} from {filepath}")
-    
+
     # Validate inputs
     input_path = Path(filepath)
     if not input_path.exists():
         raise FileNotFoundError(f"IQSS file not found: {filepath}")
-    
+
     if not (2015 <= annee <= 2030):
         raise ValueError(f"Invalid year {annee}")
 
     try:
         # Load file based on extension
         ext = input_path.suffix.lower()
-        
+
         if ext == ".csv":
             logger.debug("Loading CSV file")
             df = pd.read_csv(filepath, sep=";", dtype=str, encoding="latin-1")
@@ -70,17 +68,16 @@ def clean_iqss(
             df = pd.read_excel(filepath, dtype=str)
         else:
             raise IQSSTransformError(f"Unsupported file format: {ext}")
-        
+
         logger.info(f"Loaded {len(df)} rows and {len(df.columns)} columns")
-        
+
     except Exception as e:
         raise IQSSTransformError(f"Failed to load IQSS file: {e}") from e
 
     try:
         # Normalize column names
         df.columns = (
-            df.columns
-            .str.lower()
+            df.columns.str.lower()
             .str.strip()
             .str.replace(" ", "_", regex=False)
             .str.replace("-", "_", regex=False)
@@ -110,23 +107,19 @@ def clean_iqss(
             "1-Obligatoire": "Obligatoire",
             "2-Facultatif": "Facultatif",
             "1-Oui": "Oui",
-            "2-Non": "Non"
+            "2-Non": "Non",
         }
-        
+
         # Apply to known categorical columns
         categorical_columns = ["participation", "depot"]
         for col in categorical_columns:
             if col in df.columns:
-                df[col] = (
-                    df[col]
-                    .replace(categorical_cleaning_map)
-                    .str.strip()
-                )
+                df[col] = df[col].replace(categorical_cleaning_map).str.strip()
                 logger.debug(f"Cleaned '{col}' column")
-        
+
         # Also check for any other columns that might have these patterns
         for col in df.columns:
-            if col not in categorical_columns and df[col].dtype == 'object':
+            if col not in categorical_columns and df[col].dtype == "object":
                 # Check if column contains any of these patterns
                 if df[col].isin(categorical_cleaning_map.keys()).any():
                     df[col] = df[col].replace(categorical_cleaning_map).str.strip()
@@ -146,7 +139,7 @@ def clean_iqss(
         logger.info("Running data quality checks")
         null_counts = df.isnull().sum()
         critical_nulls = null_counts[null_counts > len(df) * 0.5]
-        
+
         if len(critical_nulls) > 0:
             logger.warning(f"Columns with >50% null values: {list(critical_nulls.index)}")
 
@@ -159,16 +152,16 @@ def clean_iqss(
             output_base = Path(silver_dir)
         else:
             output_base = config.get_silver_path("iqss")
-        
+
         output_dir = output_base / str(annee)
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         output_path = output_dir / f"resultats_iqss_{annee}.csv"
         df.to_csv(output_path, index=False, sep=";", encoding="utf-8-sig")
-        
+
         logger.info(f"Saved cleaned data to {output_path}")
         logger.info(f"Final shape: {df.shape[0]} rows × {df.shape[1]} columns")
-        
+
     except Exception as e:
         raise IQSSTransformError(f"Failed to save cleaned IQSS data: {e}") from e
 
