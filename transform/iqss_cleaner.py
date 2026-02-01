@@ -164,7 +164,7 @@ def clean_iqss(
         output_dir.mkdir(parents=True, exist_ok=True)
         
         output_path = output_dir / f"resultats_iqss_{annee}.csv"
-        df.to_csv(output_path, index=False, sep=";")
+        df.to_csv(output_path, index=False, sep=";", encoding="utf-8-sig")
         
         logger.info(f"Saved cleaned data to {output_path}")
         logger.info(f"Final shape: {df.shape[0]} rows × {df.shape[1]} columns")

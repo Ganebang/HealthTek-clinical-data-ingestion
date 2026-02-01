@@ -89,7 +89,10 @@ HealthTek-clinical-data-ingestion/
 ├── transform/               # Data transformations
 │   ├── __init__.py
 │   ├── finess_cleaner.py   # FINESS cleaning logic
-│   └── iqss_cleaner.py     # IQSS cleaning logic
+│   ├── iqss_cleaner.py     # IQSS cleaning logic
+│   └── gold/               # Gold layer logic
+│       ├── __init__.py
+│       └── fact_establishment_quality.py
 │
 ├── tests/                   # Test suite
 │   ├── conftest.py         # Shared fixtures
@@ -98,7 +101,8 @@ HealthTek-clinical-data-ingestion/
 │   ├── test_iqss.py
 │   ├── test_finess_cleaner.py
 │   ├── test_iqss_cleaner.py
-│   └── test_orchestrator.py
+│   ├── test_orchestrator.py
+│   └── test_gold_quality.py # New Gold layer tests
 │
 ├── notebooks/               # Data exploration
 │   ├── 01_bronze_finess_exploration.ipynb
@@ -111,9 +115,11 @@ HealthTek-clinical-data-ingestion/
     ├── bronze/             # Raw data
     │   ├── finess/
     │   └── iqss/
-    └── silver/             # Cleaned data
-        ├── finess/
-        └── iqss/
+    ├── silver/             # Cleaned data
+    │   ├── finess/
+    │   └── iqss/
+    └── gold/               # Analytics data
+        └── facts/          # Fact tables
 ```
 
 ## ⚙️ Configuration
@@ -220,6 +226,15 @@ Both sources:
 - Cleans categorical fields (`participation`, `depot`)
 - Normalizes FINESS identifier
 - Performs data quality checks
+
+### Load (Gold Layer)
+
+The Gold layer aggregates data into analytics-ready tables:
+
+- **fact_establishment_quality**: Joins FINESS establishment details with annual IQSS scores.
+  - Calculates year-over-year evolution metrics (`score_evolution_diff`).
+  - Computes business trend indicators (`evolution_custom_trend`).
+  - Standardizes score columns across years.
 
 ## 🔍 Logging
 

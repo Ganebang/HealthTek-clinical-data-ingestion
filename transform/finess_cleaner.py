@@ -95,14 +95,28 @@ def clean_finess(
         # Load raw FINESS file
         # Note: The raw file has a metadata header row (row 0) that needs to be skipped
         logger.debug("Loading FINESS CSV file")
-        df = pd.read_csv(
-            filepath,
-            sep=";",
-            skiprows=1,  # Skip metadata header row
-            header=None,
-            dtype=str,
-            encoding="utf-8"
-        )
+        
+        # Try multiple encodings
+        encodings = ["utf-8", "latin1", "cp1252"]
+        df = None
+        
+        for encoding in encodings:
+            try:
+                df = pd.read_csv(
+                    filepath,
+                    sep=";",
+                    skiprows=1,  # Skip metadata header row
+                    header=None,
+                    dtype=str,
+                    encoding=encoding
+                )
+                logger.info(f"Successfully loaded file with {encoding} encoding")
+                break
+            except UnicodeDecodeError:
+                continue
+                
+        if df is None:
+            raise FinessTransformError("Failed to decode file with supported encodings (utf-8, latin1, cp1252)")
         
         logger.debug(f"Loaded {len(df)} rows with {len(df.columns)} columns")
         
@@ -207,7 +221,8 @@ def clean_finess(
         output_dir.mkdir(parents=True, exist_ok=True)
         
         output_path = output_dir / "finess.csv"
-        df.to_csv(output_path, index=False, sep=";")
+        output_path = output_dir / "finess.csv"
+        df.to_csv(output_path, index=False, sep=";", encoding="utf-8-sig")
         
         logger.info(f"Saved cleaned data to {output_path}")
         logger.info(f"Final shape: {df.shape[0]} rows × {df.shape[1]} columns")

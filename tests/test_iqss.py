@@ -47,10 +47,24 @@ class TestIQSSSource:
         assert source.should_refresh() is True
     
     def test_should_refresh_with_marker(self, temp_dir):
-        """Test should_refresh when marker file exists."""
+        """Test should_refresh when marker file exists and data is fresh."""
         source = IQSSSource(annee=2023, base_dir=str(temp_dir))
         source.marker_file.touch()
-        assert source.should_refresh() is False
+        source.meta_file.write_text("2023-01-01T00:00:00")
+        
+        # Mock last modified check to return same timestamp
+        with patch.object(IQSSSource, '_get_remote_last_modified', return_value="2023-01-01T00:00:00"):
+            assert source.should_refresh() is False
+
+    def test_should_refresh_update_available(self, temp_dir):
+        """Test should_refresh when marker exists but remote is newer."""
+        source = IQSSSource(annee=2023, base_dir=str(temp_dir))
+        source.marker_file.touch()
+        source.meta_file.write_text("2023-01-01T00:00:00")
+        
+        # Mock remote newer
+        with patch.object(IQSSSource, '_get_remote_last_modified', return_value="2023-06-01T00:00:00"):
+            assert source.should_refresh() is True
     
     @patch('src.iqss.config')
     def test_download_success(self, mock_config, temp_dir, mocker):
