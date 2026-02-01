@@ -2,7 +2,6 @@
 Tests for Gold layer: Establishment Quality Fact Table.
 """
 
-
 import pandas as pd
 import pytest
 

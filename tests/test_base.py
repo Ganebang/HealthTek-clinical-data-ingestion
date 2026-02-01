@@ -2,7 +2,6 @@
 Tests for the DataSource base class.
 """
 
-
 import pytest
 import requests
 
